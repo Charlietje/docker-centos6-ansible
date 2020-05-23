@@ -28,4 +28,12 @@ RUN sed -i '/start_udev/s/^/#/g' /etc/rc.d/rc.sysinit \
 RUN mkdir -p /etc/ansible
 RUN echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts
 
+# Create `ansible` user with sudo permissions
+ENV ANSIBLE_USER=ansible SUDO_GROUP=wheel
+RUN set -xe \
+  && groupadd -r ${ANSIBLE_USER} \
+  && useradd -m -g ${ANSIBLE_USER} ${ANSIBLE_USER} \
+  && usermod -aG ${SUDO_GROUP} ${ANSIBLE_USER} \
+  && sed -i "/^%${SUDO_GROUP}/s/ALL\$/NOPASSWD:ALL/g" /etc/sudoers
+
 CMD ["/sbin/init"]
